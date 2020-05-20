@@ -1,83 +1,59 @@
 import socket
-import select
 import sys
-import msvcrt
-import os
-from ftplib import FTP
-import os
-import shutil
-from zipfile import ZipFile
+from threading import Thread
 
-f_user = 'carlo'
-f_password = 'carlo'
-ip_ftp = '127.0.0.1'
-f = FTP(ip_ftp)
-f.login(f_user,f_password)
-server_address = ('localhost', 5000)
-server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-server.connect(server_address)
-delay = 1
-starter = ' Connected!'
-print('You are connected!')
-server.send(starter.encode())
+# konfigurasi server connect
+server_address = ('localhost', 3000)
+client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+print('connecting to %s port %s' % server_address)
+client.connect(server_address)
 
-while True:
-    socket_list = [server]
-    read_socket, write_socket, error_socket = select.select(socket_list,[],[],1)
-    if msvcrt.kbhit(): 
-        read_socket.append(sys.stdin)
-    for socks in read_socket:
-        if socks==server:#baca
-            message = server.recv(2048).decode()
-            if message:
-                if(message=='itsafile'):
-                    filename = server.recv(2048).decode()
-                    filesize = server.recv(2048).decode()
-                    filesize = int(filesize, 2)
-                    file_to_write = open(filename, 'wb')
-                    chunksize = 4096
-                    while filesize > 0:
-                        if filesize < chunksize:
-                            chunksize = filesize
-                        data = server.recv(2048)
-                        file_to_write.write(data)
-                        filesize -= len(data)
-                    file_to_write.close()
-                    print('Received File : '+filename)
-                else:
-                    sender = message
-                    message = server.recv(2048).decode()
-                    print(sender +' '+ message)
-            print('Current working directory ' + f.pwd()+ '\n')
-        else: #kirim
-            message = sys.stdin.readline()
-            if(message.split(' ')[0]=='SENDALL'): #stringcheck
-                filename=str(str(message.split(' ')[1]).split('\n')[0])
-                message='itsafile'
-                server.send(message.encode())
-                server.send(filename.encode())
-                filesize = os.path.getsize(filename)
-                filesize = bin(filesize)[2:].zfill(32) # encode filesize as 32 bit binary
-                server.send(filesize.encode())
-                file_to_send = open(filename, 'rb')
-                l = file_to_send.read()
-                server.sendall(l)
-                file_to_send.close()
-            elif(message.split(' ')[0]=='LIST\n'): #stringcheck
-                names = f.nlst()
-                print('List of directory: ' + str(names))
-            elif(message.split(' ')[0]=='PWD\n'): #stringcheck
-                print('Current working directory ' + f.pwd() + '\n')
-                continue
-            elif(message.split(' ')[0]=='CD'): #stringcheck
-                f.cwd(str(str(message.split(' ')[1]).split('\n')[0]))
-            elif(message.split(' ')[0]=='MKDIR'): #stringcheck
-                f.mkd(str(str(message.split(' ')[1]).split('\n')[0]))
-            elif(message.split(' ')[0]=='DOWNZIP '): #stringcheck
-                print('this willbe downzip')
-            else:
-                message=message.split('\n')
-                server.send(message[0].encode())
-                server.settimeout(delay)
-            print('Current working directory ' + f.pwd() + '\n')
-server.close() 
+# gui
+from tkinter import *
+
+# main window
+mw = Tk()
+mw.option_add("*Button.Background", "grey")
+mw.option_add("*Button.Foreground", "white")
+mw.title('ChatApp')
+mw.geometry("500x500") #ukuran 500x500
+mw.resizable(0, 0) #Don't allow resizing in the x or y direction
+
+# back frame
+back = Frame(master=mw,bg='grey')
+back.pack_propagate(0) #Don't allow the widgets inside to determine the frame's width / height
+back.pack(fill=BOTH, expand=1) #Expand the frame to fill the root window
+
+# list box & scrollbar
+Lb = Listbox(back)
+Lb.pack(side = LEFT, fill=BOTH, expand=1)
+scrollbar = Scrollbar(back)
+scrollbar.pack(side = RIGHT, fill = BOTH)
+Lb.config(yscrollcommand = scrollbar.set)
+scrollbar.config(command = Lb.yview)
+
+# get inputan
+def getTextInput():
+    message = textExample.get("1.0","end-1c")
+    # print(message)
+    client.send(message.encode())
+
+# input box
+
+
+textExample=Text(master=mw, height=1)
+textExample.pack()
+btnRead=Button(master=mw, height=1, width=10, text="Send ", command=getTextInput)
+btnRead.pack()
+
+# get broadcast
+def recv():
+    while True:
+        data = client.recv(1024).decode()
+        # print(data)
+        ###
+        Lb.insert(END, data)
+        textExample.delete('1.0', END)
+
+Thread(target=recv).start()
+mw.mainloop()

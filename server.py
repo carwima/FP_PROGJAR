@@ -1,68 +1,45 @@
 import socket
-import random
-import select
-import sys
-import os
-import zipfile
+from threading import Thread
 
-server_address = ('127.0.0.1',5000)
-server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-server_socket.bind(server_address)
+def accept_conn():
+    while True:
+        client, client_address = server.accept()
+        print("%s:%s has connected." % client_address)
+        client.send("Nama > ".encode() )
+        addresses[client] = client_address
+        Thread(target=run_client, args=(client,)).start()
 
-list_of_clients=[]
+def run_client(client): 
+    user = client.recv(buffer).decode()
+    welcome = 'Welcome %s! ' % user
+    client.send(welcome.encode() )
+    msg = "%s has joined the chat!" % user
+    broadcast(msg.encode() )
+    clients[client] = user
 
-def broadcast(address, addr, message):
-    #print("YAY! YOU CALLED ME!!!!!!")
-    for clients in list_of_clients:
-        if clients!=address: 
-            server_socket.sendto(addr.encode(), clients)
-            server_socket.sendto(message.encode(), clients)
+    while True:
+        msg = client.recv(buffer)
+        broadcast(msg, user + " : ")
 
-def broadcastfile(address, filename):
-    #print("YAY! YOU CALLED ME!!!!!!")
-    for clients in list_of_clients:
-        if clients!=address: 
-            message='itsafile'
-            server_socket.sendto(message.encode(),clients)
-            server_socket.sendto(filename.encode(),clients)
-            filesize = os.path.getsize(filename)
-            filesize = bin(filesize)[2:].zfill(32) # encode filesize as 32 bit binary
-            server_socket.sendto(filesize.encode(),clients)
-            file_to_send = open(filename, 'rb')
-            l = file_to_send.read()
-            server_socket.sendto(l,clients)
-            file_to_send.close()
-            print('Broadcasted to'+'<\'' +str(clients[0])+'\',\''+str(clients[1])+'\'>')
+def broadcast(msg, prefix=""):
+    for sock in clients:
+        sock.send(prefix.encode() +msg)
 
-while True:
-    data, client_address = server_socket.recvfrom(1024)
-    list_of_clients.append(client_address)
-    list_of_clients = list(set(list_of_clients))
-    message = data.decode()
-    if(message=='itsafile'):
-        address = client_address
-        data, client_address = server_socket.recvfrom(1024)
-        filename = data.decode()
-        data, client_address = server_socket.recvfrom(1024)
-        filesize = data.decode()
-        filesize = int(filesize, 2)
-        file_to_write = open(filename, 'wb')
-        chunksize = 4096
-        while filesize > 0:
-            if filesize < chunksize:
-                chunksize = filesize
-            data, client_address = server_socket.recvfrom(1024)
-            data = data
-            file_to_write.write(data)
-            filesize -= len(data)
-        file_to_write.close()
-        print('Received File : '+filename + " Broadcasting... ")
-        broadcastfile(address,filename)
-    else:
-        addr='<\'' +str(client_address[0])+'\',\''+str(client_address[1])+'\'>'
-        print('\n>> '+ addr+' '+message)
-        broadcast(client_address,addr, message)
+clients = {}
+addresses = {}
 
-list_of_clients.remove(data)
-data.close()
+host = 'localhost'
+port = 3000
+
+buffer = 1024
+addr = (host, port)
+server = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+server.bind(addr)
+
+if __name__ == "__main__":
+    server.listen(5)
+    print("Waiting connection...")
+    acc_thread = Thread(target=accept_conn)
+    acc_thread.start()
+    acc_thread.join()
+    server.close()

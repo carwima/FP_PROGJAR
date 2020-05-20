@@ -1,9 +1,5 @@
 from tkinter import *
 
-def startgame():
-
-    pass
-
 mw = Tk()
 
 mw.option_add("*Button.Background", "grey")
@@ -30,8 +26,7 @@ scrollbar.config(command = Lb.yview)
 
 def getTextInput():
     result=textExample.get("1.0","end-1c")
-    print(result)
-    # Lb.insert(countlb, result)
+    # print(result)
     Lb.insert(END, result)
     textExample.delete('1.0', END)
 
