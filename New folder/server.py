@@ -5,13 +5,13 @@ def accept_conn():
     while True:
         client, client_address = server.accept()
         print("%s:%s has connected." % client_address)
-        client.send("Type your name...".encode() )
+        client.send("Nama > ".encode() )
         addresses[client] = client_address
         Thread(target=run_client, args=(client,)).start()
 
-def run_client(client):  # Takes client socket as argument.
+def run_client(client): 
     user = client.recv(buffer).decode()
-    welcome = 'Welcome %s! type quit to exit program.' % user
+    welcome = 'Welcome %s! ' % user
     client.send(welcome.encode() )
     msg = "%s has joined the chat!" % user
     broadcast(msg.encode() )
@@ -19,16 +19,9 @@ def run_client(client):  # Takes client socket as argument.
 
     while True:
         msg = client.recv(buffer)
-        # if msg != "quit".encode():
         broadcast(msg, user + " : ")
-        # else:
-        #     client.send("quit".encode() )
-        #     client.close()
-        #     del clients[client]
-        #     broadcast(user.encode() + " has left the chat.".encode())
-        #     break
 
-def broadcast(msg, prefix=""):  # prefix is for name identification.
+def broadcast(msg, prefix=""):
     for sock in clients:
         sock.send(prefix.encode() +msg)
 
