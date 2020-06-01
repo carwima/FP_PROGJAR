@@ -7,9 +7,11 @@ from ftplib import FTP
 import os
 import shutil
 from zipfile import ZipFile
+from tkinter import *
+from tkinter import filedialog
 
-f_user = 'carlo'
-f_password = 'carlo'
+f_user = 'test'
+f_password = ''
 ip_ftp = '127.0.0.1'
 f = FTP(ip_ftp)
 f.login(f_user,f_password)
@@ -63,18 +65,6 @@ while True:
                 l = file_to_send.read()
                 server.sendall(l)
                 file_to_send.close()
-            elif(message.split(' ')[0]=='LIST\n'): #stringcheck
-                names = f.nlst()
-                print('List of directory: ' + str(names))
-            elif(message.split(' ')[0]=='PWD\n'): #stringcheck
-                print('Current working directory ' + f.pwd() + '\n')
-                continue
-            elif(message.split(' ')[0]=='CD'): #stringcheck
-                f.cwd(str(str(message.split(' ')[1]).split('\n')[0]))
-            elif(message.split(' ')[0]=='MKDIR'): #stringcheck
-                f.mkd(str(str(message.split(' ')[1]).split('\n')[0]))
-            elif(message.split(' ')[0]=='DOWNZIP '): #stringcheck
-                print('this willbe downzip')
             else:
                 message=message.split('\n')
                 server.send(message[0].encode())
