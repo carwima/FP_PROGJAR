@@ -97,7 +97,9 @@ if __name__ == '__main__':
     e3.pack(side=LEFT)
     # textExample=Text(master=mw, height=1)
     # textExample.pack()
-    btnRead=Button(master=mw, height=1, text=" Send ", command=getTextInput)
+    photo = PhotoImage(file = "gui assets/send.png") 
+    photoimage = photo.subsample(7, 7)
+    btnRead=Button(master=mw, height=1, text=" Send ", image = photoimage, compound = LEFT, command=getTextInput)
     btnRead.pack(side=LEFT)
     
 
