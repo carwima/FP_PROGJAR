@@ -10,21 +10,33 @@ f_password = ''
 ip_ftp = '127.0.0.1'
 f = FTP(ip_ftp)
 f.login(f_user,f_password)
+session = FTP(ip_ftp, f_user, f_password)
+
+name =""
 
 # get inputan
 def getTextInput():
     message = e3.get()
+    if message[0:5]=='/retr':
+        filename = message[6:]
+        localfile = open(filename, 'wb')
+        session.retrbinary("RETR " + filename, localfile.write, 1024)
+        localfile.close()
+        
     # print(message)
-    client.send(message.encode())
+    else:
+        client.send(message.encode())
 
 def getFileInput():
     filename = filedialog.askopenfilename(initialdir =  "/", title = "Select A File", filetype =( ("jpeg files","*.jpg"),("all files","*.*") ) )
     client.send(filename.encode())
-    session = FTP(ip_ftp, f_user, f_password)
     file = open(filename,'rb')    
     filename=filename.split("/")[-1]              # file to send
     session.storbinary('STOR '+filename, file)     # send the file
     file.close()
+    pesanfilekirim = name+" telah mengirim file dengan nama "+filename+". Silakan kirim pesan /retr "+filename+" untuk mengunduh file."
+    client.send(pesanfilekirim.encode())
+
 
 # get broadcast
 def recv():
@@ -69,7 +81,7 @@ if __name__ == '__main__':
     scroll.pack(side=RIGHT, fill=Y)
 
     # Text Widget
-    eula = Text(back, wrap=NONE, yscrollcommand=scroll.set)
+    eula = Text(back, wrap=WORD, yscrollcommand=scroll.set)
     # eula.insert(END, "\ntext")
     eula.pack(side="left")
     eula.config(state=DISABLED)
@@ -95,9 +107,9 @@ if __name__ == '__main__':
     Label(topbg, text="Username : ").pack(pady = 4)
     e1 = Entry(topbg, width=25)
     e1.pack(pady = 4)
-    Label(topbg, text="Password : ").pack(pady = 4)
-    e2 = Entry(topbg, show="*", width=25)
-    e2.pack(pady = 4)
+    # Label(topbg, text="Password : ").pack(pady = 4)
+    # e2 = Entry(topbg, show="*", width=25)
+    # e2.pack(pady = 4)
     Button(topbg, text='Login', command=login).pack()
 
     mw.mainloop()
