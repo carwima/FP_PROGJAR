@@ -78,6 +78,7 @@ def recv():
 def login():
     name = e1.get()
     client.send(name.encode())
+    mw.attributes("-topmost", True)
     top.destroy()
  
 
@@ -116,21 +117,26 @@ if __name__ == '__main__':
     Thread(target=recv).start()
 
     # input box
-    btnFtp=Button(master=mw, height=1, text=" F ", command=getFtp)
+    imgFtp = PhotoImage(file = r"./gui assets/ftp.png")
+    btnFtp=Button(master=mw, text=" F ", command=getFtp, image = imgFtp, height = 20, width = 20)
     btnFtp.pack(side=LEFT)
-    btnFtp=Button(master=mw, height=1, text=" I ", command=getFileInput)
+    imgAttach = PhotoImage(file = r"./gui assets/attach.png")
+    btnFtp=Button(master=mw, image= imgAttach, text=" I ", command=getFileInput, height = 20, width = 20)
     btnFtp.pack(side=LEFT)
-    e3 = Entry(mw, width=68)
+    e3 = Entry(mw, width=70)
     e3.pack(side=LEFT)
     # textExample=Text(master=mw, height=1)
     # textExample.pack()
-    btnRead=Button(master=mw, height=1, text=" Send ", command=lambda: getTextInput(e3.get()))
+    imgSend = PhotoImage(file = r"./gui assets/send.png")
+    btnRead=Button(master=mw, image = imgSend , text=" Send ", command=lambda: getTextInput(e3.get()),  height = 24, width = 24 )
     btnRead.pack(side=LEFT)
     
 
     top = Toplevel()
     top.title("Please Login")
-    topbg = Frame(master=top,bg='grey', height=50)
+    top.geometry("%dx%d%+d%+d" % (250, 80, 250, 240))
+    top.attributes("-topmost", True)
+    topbg = Frame(master=top,bg='grey')
     topbg.pack(fill=X, expand=1) #Expand the frame to fill the root window
     Label(topbg, text="Username : ").pack(pady = 4)
     e1 = Entry(topbg, width=25)
