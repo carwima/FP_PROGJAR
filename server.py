@@ -5,7 +5,6 @@ def accept_conn():
     while True:
         client, client_address = server.accept()
         print("%s:%s has connected." % client_address)
-        # client.send("Nama > ".encode() )
         addresses[client] = client_address
         Thread(target=run_client, args=(client,)).start()
 
@@ -16,7 +15,7 @@ def run_client(client):
     msg = "%s has joined the chat!" % user
     broadcast(msg.encode() )
     clients[client] = user
-
+ 
     while True:
         msg = client.recv(buffer)
         broadcast(msg, user + " : ")
